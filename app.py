@@ -10,13 +10,10 @@ import warnings
 from supabase import create_client, Client
 
 warnings.filterwarnings('ignore')
-
-# MUST BE THE VERY FIRST STREAMLIT COMMAND
 st.set_page_config(page_title="Smart CBC AI", page_icon="🩸", layout="wide")
 
-# ==========================================
-# CONNECT TO CLOUD DATABASE
-# ==========================================
+
+#CONNECT TO CLOUD DATABASE
 @st.cache_resource
 def init_connection():
     url = st.secrets["SUPABASE_URL"]
@@ -25,18 +22,20 @@ def init_connection():
 
 supabase: Client = init_connection()
 
-# ==========================================
-# SECURE DATABASE LOGIN & REGISTRATION GATE
-# ==========================================
+#-----------------------------------
+#DATABASE LOGIN & REGISTRATION 
+
+
+#------------------------------------
 def check_password():
     if st.session_state.get("password_correct", False):
         return True
 
-    st.markdown("<h1 style='text-align: center;'>🏥 Vertec Labs - Clinical Portal</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>🏥 SmartCBC - Clinical Portal</h1>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Create Tabs for Login and Sign Up
+        #Tabs for Login and Sign Up
         tab_login, tab_register = st.tabs(["🔐 Login", "📝 Create Account"])
         
         with tab_login:
@@ -47,7 +46,6 @@ def check_password():
 
                 if submit_button:
                     try:
-                        # Make sure "User_Name" matches your Supabase table perfectly!
                         response = supabase.table("User").select("*").eq("User_Name", username).eq("Password", password).execute()
                         if len(response.data) > 0:
                             st.session_state["password_correct"] = True
@@ -65,14 +63,14 @@ def check_password():
                 
                 if register_button:
                     try:
-                        # 1. Check if username already exists
+                        #Check if username already exists
                         check_user = supabase.table("User").select("*").eq("User_Name", new_username).execute()
                         if len(check_user.data) > 0:
                             st.error("⚠️ Username already exists. Please choose another one.")
                         elif len(new_username) < 3 or len(new_password) < 5:
                             st.warning("⚠️ Username must be 3+ chars and password 5+ chars.")
                         else:
-                            # 2. Insert new user into the database
+                            #Insert new user into the database
                             supabase.table("User").insert({"User_Name": new_username, "Password": new_password}).execute()
                             st.success("✅ Account created successfully! You can now log in.")
                     except Exception as e:
@@ -83,9 +81,9 @@ def check_password():
 if not check_password():
     st.stop()
 
-# ==========================================
+#-------------------------------------------
+
 # MAIN APPLICATION CODE
-# ==========================================
 @st.cache_resource
 def load_assets():
     model = joblib.load('meta_ensemble_model.joblib')
@@ -96,15 +94,15 @@ def load_assets():
 try:
     model, scaler, elite_features = load_assets()
 except FileNotFoundError:
-    st.error("🚨 Missing .joblib files. Please ensure model, scaler, and features files are in the folder.")
+    st.error("Missing .joblib files.")
     st.stop()
 
 # Disease Mapping
 disease_map = {0: 'Anemia', 1: 'Dengue', 2: 'Healthy', 3: 'Infection', 4: 'Kidney Disease'}
 inverse_disease_map = {v: k for k, v in disease_map.items()}
 
-# --- SIDEBAR NAVIGATION ---
-st.sidebar.title("🏥 Navigation")
+#SIDEBAR NAVIGATION
+st.sidebar.title("Navigation")
 app_mode = st.sidebar.radio("Select Diagnostic Mode:", ["👤 Single Patient XAI", "📁 Batch Processing (CSV)"])
 
 st.sidebar.markdown("---")
@@ -180,7 +178,7 @@ if app_mode == "👤 Single Patient XAI":
 
             final_pred_idx = inverse_disease_map[final_diagnosis]
 
-            # --- THE FIX: SECURE CLOUD DATABASE SAVING ---
+            # CLOUD DATABASE SAVING
             if consent_given:
                 try:
                     db_record = {
@@ -190,13 +188,13 @@ if app_mode == "👤 Single Patient XAI":
                         "ai_diagnosis": final_diagnosis
                     }
                     supabase.table("Patient_Records").insert(db_record).execute()
-                    st.toast("✅ Anonymized record securely saved to Vertec Labs Cloud.")
+                    st.toast("✅ Anonymized record securely saved to SmartCBC Cloud.")
                 except Exception as e:
                     st.warning(f"⚠️ Diagnosis complete, but failed to save to cloud: {e}")
             elif not consent_given:
                 st.toast("⚠️ Record not saved (Consent not provided).")
 
-            # --- DASHBOARD DISPLAY ---
+            #DASHBOARD DISPLAY
             st.markdown("---")
             if final_diagnosis == 'Healthy':
                 st.success(f"### Final Diagnosis: {final_diagnosis}")
@@ -219,7 +217,7 @@ if app_mode == "👤 Single Patient XAI":
             st.plotly_chart(fig_gauge, use_container_width=True)
 
             st.markdown("### Explainable AI & Clinical Report")
-            tab1, tab2, tab3 = st.tabs(["LIME (The Rules)", "SHAP (The Tug-of-War)", "📋 Standard Clinical Report"])
+            tab1, tab2, tab3 = st.tabs(["LIME", "SHAP", "📋 Standard Clinical Report"])
 
             def xai_predict_proba(raw_array):
                 raw_df = pd.DataFrame(raw_array, columns=elite_features)
@@ -260,7 +258,7 @@ if app_mode == "👤 Single Patient XAI":
                 components.html(white_background_html, height=450, scrolling=True)
 
             with tab2:
-                st.markdown("#### SHAP: The 'Tug-of-War'")
+                st.markdown("#### SHAP: Explnations'")
                 shap_explainer = shap.KernelExplainer(xai_predict_proba, background_raw[:10])
                 shap_values_raw = shap_explainer.shap_values(input_df)
                 
@@ -304,7 +302,7 @@ if app_mode == "👤 Single Patient XAI":
 
 elif app_mode == "📁 Batch Processing (CSV)":
     st.title("📁 Laboratory Batch Processing")
-    st.markdown("Upload a CSV file containing multiple patient records. The AI will engineer the features, apply clinical overrides, and generate a mass diagnostic report.")
+    st.markdown("Upload a CSV file containing multiple patient records. The system will engineer the features, apply clinical overrides, and generate a mass diagnostic report.")
     st.info("💡 **CSV Format Required:** Your file must contain the following columns:\n`Age`, `Gender` (Male/Female), `Hemoglobin`, `WBC`, `RBC`, `Platelets`, `Hematocrit`, `MCV`, `MCH`, `MCHC`")
 
     uploaded_file = st.file_uploader("Upload Patient CBC Data (CSV)", type=['csv'])
@@ -379,14 +377,13 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     type='primary'
                 )
 
-            # ==========================================
+            #---------------------------------
             # BULK CLOUD SAVE 
-            # ==========================================
             st.markdown("---")
             st.markdown("### 💾 Cloud Database Sync")
             batch_consent = st.checkbox("I confirm these records are anonymized and consent to storing them for AI research.", key="batch_consent")
             
-            if st.button("☁️ Save Batch to Vertec Labs Cloud", type="primary"):
+            if st.button("☁️ Save Batch to SmartCBC Cloud", type="primary"):
                 if batch_consent:
                     with st.spinner("Uploading batch to database..."):
                         try:
@@ -407,17 +404,15 @@ elif app_mode == "📁 Batch Processing (CSV)":
                                     "ai_diagnosis": str(batch_df['AI Final Diagnosis'].iloc[i])
                                 })
                             
-                            # Notice I capitalized "Patient_Records" here to match your other code perfectly!
                             supabase.table("Patient_Records").insert(records_to_insert).execute()
                             st.success(f"✅ Successfully synced {len(records_to_insert)} anonymized patient records to the cloud database!")
                         except Exception as e:
                             st.error(f"⚠️ Failed to save batch to cloud: {e}")
                 else:
                     st.warning("⚠️ Please check the consent box to synchronize data.")
-
-            # ==========================================
+            #-----------------------------------------------
             # DEEP DIVE INSPECTOR
-            # ==========================================
+            
             st.markdown("---")
             st.markdown("### 🔍 Deep Dive: Patient Inspector")
             selected_row = st.selectbox(
@@ -467,7 +462,7 @@ elif app_mode == "📁 Batch Processing (CSV)":
                 background_raw = scaler.inverse_transform(background_scaled)
                 background_raw = np.clip(background_raw, a_min=0, a_max=None)
 
-                tab1, tab2, tab3 = st.tabs(["LIME (The Rules)", "SHAP (The Tug-of-War)", "📋 Standard Clinical Report"])
+                tab1, tab2, tab3 = st.tabs(["LIME (The Rules)", "SHAP (Explanations)", "📋 Standard Clinical Report"])
                 
                 with tab1:
                     st.markdown("#### LIME: The Mathematical Rules")
@@ -483,7 +478,7 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     components.html(white_background_html, height=450, scrolling=True)
 
                 with tab2:
-                    st.markdown("#### SHAP: The 'Tug-of-War'")
+                    st.markdown("#### SHAP: The Explanations")
                     shap_explainer = shap.KernelExplainer(batch_xai_predict_proba, background_raw[:10])
                     shap_values_raw = shap_explainer.shap_values(pat_input_df)
                     
