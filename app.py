@@ -118,7 +118,7 @@ if app_mode == "👤 Single Patient XAI":
     with col_d1:
         age = st.number_input("Patient Age", min_value=1, max_value=120, value=35)
     with col_d2:
-        gender = st.selectbox("Patient Gender", ["Male", "Female"])
+        gender = st.selectbox("Patient Gender", ["Male", "Female"],index=1)
         gender_encoded = 1 if gender == "Male" else 0
 
     st.subheader("2. Hematology Parameters")
