@@ -8,4 +8,6 @@ joblib
 shap
 lime
 plotly
+
 supabase
+matplotlib
