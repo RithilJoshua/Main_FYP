@@ -30,10 +30,20 @@ st.set_page_config(page_title="Smart CBC Diagnosis", page_icon="🩸")
 st.title("🏥 AI-Powered Disease Diagnosis System")
 st.markdown("Enter the patient's CBC (Complete Blood Count) values below.")
 
+st.subheader("Patient Demographics")
+col_dem1, col_dem2 = st.columns(2)
+with col_dem1:
+    age = st.number_input("Patient Age", min_value=1, max_value=120, value=35)
+with col_dem2:
+    st.write("") 
+    gender = st.radio("Patient Gender", ["Male", "Female"], horizontal=True)
+
+st.subheader("Hematology Parameters")
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    hgb = st.number_input("Hemoglobin (g/dL)", min_value=0.0, max_value=25.0, value=13.0, step=0.1)
+    hgb = st.number_input("Hemoglobin (g/dL)", min_value=0.0, max_value=25.0, value=15.0, step=0.1)
     rbc = st.number_input("RBC Count (m/mcL)", min_value=0.0, max_value=10.0, value=4.8, step=0.1)
     mcv = st.number_input("MCV (fL)", min_value=0.0, max_value=150.0, value=85.0, step=1.0)
 
@@ -43,13 +53,13 @@ with col2:
     mch = st.number_input("MCH (pg)", min_value=0.0, max_value=50.0, value=29.0, step=0.1)
 
 with col3:
-    hct = st.number_input("Hematocrit (%)", min_value=0.0, max_value=80.0, value=40.0, step=0.1)
+    hct = st.number_input("Hematocrit (%)", min_value=0.0, max_value=80.0, value=45.0, step=0.1)
     mchc = st.number_input("MCHC (g/dL)", min_value=0.0, max_value=50.0, value=33.0, step=0.1)
 
 import plotly.graph_objects as go
 
 # --- PART 3: MATCH ENGINE ---
-def make_prediction(hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count):
+def make_prediction(gender, hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count):
     # 1. Feature Engineering 
     pwr = plt_count / (wbc + 1e-5)
     hpr = hgb / (plt_count + 1e-5)
@@ -77,6 +87,16 @@ def make_prediction(hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count):
     
     final_diagnosis = initial_diagnosis
     
+    # Gender-Specific Anemia Override
+    if initial_diagnosis == "Healthy":
+        if (gender == "Male" and hgb < 13.5) or (gender == "Female" and hgb < 12.0):
+            final_diagnosis = "Anemia"
+            confidence_score = 100.0
+    elif initial_diagnosis == "Anemia":
+        if (gender == "Male" and hgb >= 13.5) or (gender == "Female" and hgb >= 12.0):
+            final_diagnosis = "Healthy"
+            confidence_score = 100.0
+    
     # Infection Override
     if wbc_scaled > 12.0:
         final_diagnosis = "Infection"
@@ -93,7 +113,7 @@ def make_prediction(hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count):
 if st.button("🩸 Diagnose Patient", type="primary", use_container_width=True):
     
     # Unpack all variables
-    result, raw_ai, patient_features, pred_idx, confidence = make_prediction(hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count)
+    result, raw_ai, patient_features, pred_idx, confidence = make_prediction(gender, hgb, wbc, rbc, hct, mcv, mch, mchc, plt_count)
     
     # Create 3 Professional Tabs
     tab1, tab2, tab3 = st.tabs(["🩺 Clinical Verdict", "🕸️ CBC Radar Profile", "📊 AI Explainability (SHAP)"])
@@ -139,7 +159,7 @@ if st.button("🩸 Diagnose Patient", type="primary", use_container_width=True):
             fig_gauge.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10))
             st.plotly_chart(fig_gauge, use_container_width=True)
 
- # --- TAB 2: CLINICAL BULLET CHARTS ---
+    # --- TAB 2: CLINICAL BULLET CHARTS ---
     with tab2:
         st.markdown("### 📊 Key Biomarker Analysis")
         st.write("Patient values compared against standard physiological reference ranges.")
