@@ -89,10 +89,11 @@ def load_assets():
     model = joblib.load('meta_ensemble_model.joblib')
     scaler = joblib.load('standard_scaler.joblib')
     features = joblib.load('elite_features_list.joblib')
+    imputer = joblib.load('imputer.joblib')
     return model, scaler, features
 
 try:
-    model, scaler, elite_features = load_assets()
+    model, scaler, elite_features, imputer = load_assets()
 except FileNotFoundError:
     st.error("Missing .joblib files.")
     st.stop()
@@ -153,6 +154,12 @@ if app_mode == "👤 Single Patient XAI":
                 'Gender_Encoded': gender_encoded
             }
             input_df = pd.DataFrame([input_data])[elite_features]
+             
+            if input_df.isnull().values.any():
+            # Transform uses the imputer to fill gaps
+             imputed_values = imputer.transform(input_df)
+             input_df = pd.DataFrame(imputed_values, columns=elite_features)
+             st.info("💡 Note: Missing clinical values were detected and filled using median imputation.")
             
             scaled_data = scaler.transform(input_df)
             scaled_df = pd.DataFrame(scaled_data, columns=elite_features)
