@@ -90,7 +90,7 @@ def load_assets():
     scaler = joblib.load('standard_scaler.joblib')
     features = joblib.load('elite_features_list.joblib')
     imputer = joblib.load('imputer.joblib')
-    return model, scaler, features
+    return model, scaler, features, imputer
 
 try:
     model, scaler, elite_features, imputer = load_assets()
