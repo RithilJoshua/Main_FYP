@@ -506,8 +506,8 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     shap_df = pd.DataFrame({
     'Feature': elite_features,
     'SHAP Value': shap_vals,
-    'Patient Value': pat_input_df.iloc[0].values
-})shap_df = shap_df[~shap_df['Feature'].isin(hidden_xai_features)]
+    'Patient Value': pat_input_df.iloc[0].values })                  
+                    shap_df = shap_df[~shap_df['Feature'].isin(hidden_xai_features)]
                     shap_df['Abs Impact'] = shap_df['SHAP Value'].abs()
                     shap_df = shap_df.sort_values(by='Abs Impact', ascending=True)
                     colors = ['#ff4b4b' if val > 0 else '#1f77b4' for val in shap_df['SHAP Value']]
