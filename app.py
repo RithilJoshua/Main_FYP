@@ -500,8 +500,8 @@ elif app_mode == "📁 Batch Processing (CSV)":
                         if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
-                  lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
-                  st.dataframe(lime_df, use_container_width=True)
+                    lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
+                    st.dataframe(lime_df, use_container_width=True)
 
                 with tab2:
                     st.markdown("#### SHAP: The Explanations")
