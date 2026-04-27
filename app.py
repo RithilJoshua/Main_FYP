@@ -261,6 +261,7 @@ if app_mode == "👤 Single Patient XAI":
                 )
                 lime_exp = lime_explainer.explain_instance(
                     input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
+                )
 
                 raw_html = lime_exp.as_html(labels=[final_pred_idx])
                 white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
