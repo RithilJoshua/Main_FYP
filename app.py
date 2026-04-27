@@ -254,12 +254,17 @@ if app_mode == "👤 Single Patient XAI":
                 st.markdown("#### LIME: The Mathematical Rules")
                 lime_explainer = lime.lime_tabular.LimeTabularExplainer(
                     training_data=background_raw, 
-                    feature_names=elite_features,
+                    #feature_names=elite_features,
+                    feature_names=["Hidden_Age" if f == "Age" else "Hidden_Gender" if f == "Gender_Encoded" else f for f in elite_features],
                     class_names=[disease_map[i] for i in range(5)],
                     mode='classification'
                 )
                 lime_exp = lime_explainer.explain_instance(
                     input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
+
+                raw_html = lime_exp.as_html(labels=[final_pred_idx])
+                white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
+                components.html(white_background_html, height=450, scrolling=True)
                 )
                 lime_items = lime_exp.as_list(label=final_pred_idx)
 
@@ -268,8 +273,8 @@ if app_mode == "👤 Single Patient XAI":
                     if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
-                lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
-                st.dataframe(lime_df, use_container_width=True)
+                #lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
+                #st.dataframe(lime_df, use_container_width=True)
 
             with tab2:
                 st.markdown("#### SHAP: Explnations'")
@@ -500,8 +505,8 @@ elif app_mode == "📁 Batch Processing (CSV)":
                         if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
-                    lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
-                    st.dataframe(lime_df, use_container_width=True)
+                    #lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
+                    #st.dataframe(lime_df, use_container_width=True)
 
                 with tab2:
                     st.markdown("#### SHAP: The Explanations")
