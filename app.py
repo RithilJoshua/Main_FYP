@@ -262,9 +262,7 @@ if app_mode == "👤 Single Patient XAI":
                     input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
                 )
                 raw_html = lime_exp.as_html(labels=[final_pred_idx]) 
-                filtered_list = [
-    item for item in lime_exp.as_list(label=final_pred_idx)
-    if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
+                filtered_list = [item for item in lime_exp.as_list(label=final_pred_idx)if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
 st.write(filtered_list)
