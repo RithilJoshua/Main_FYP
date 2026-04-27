@@ -265,7 +265,7 @@ if app_mode == "👤 Single Patient XAI":
                 filtered_list = [item for item in lime_exp.as_list(label=final_pred_idx)if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
-st.write(filtered_list)
+                st.write(filtered_list)
                 white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
                 components.html(white_background_html, height=450, scrolling=True)
 
