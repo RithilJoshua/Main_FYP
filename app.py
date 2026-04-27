@@ -94,6 +94,7 @@ def load_assets():
 
 try:
     model, scaler, elite_features, imputer = load_assets()
+    hidden_xai_features = ['Age', 'Gender_Encoded']
 except FileNotFoundError:
     st.error("Missing .joblib files.")
     st.stop()
@@ -261,6 +262,12 @@ if app_mode == "👤 Single Patient XAI":
                     input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
                 )
                 raw_html = lime_exp.as_html(labels=[final_pred_idx]) 
+                filtered_list = [
+    item for item in lime_exp.as_list(label=final_pred_idx)
+    if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
+]
+
+st.write(filtered_list)
                 white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
                 components.html(white_background_html, height=450, scrolling=True)
 
@@ -271,8 +278,14 @@ if app_mode == "👤 Single Patient XAI":
                 
                 if isinstance(shap_values_raw, list): shap_vals = shap_values_raw[final_pred_idx][0]
                 else: shap_vals = shap_values_raw[0, :, final_pred_idx]
-                    
-                shap_df = pd.DataFrame({'Feature': elite_features, 'SHAP Value': shap_vals, 'Patient Value': input_df.iloc[0].values})
+
+                shap_df = pd.DataFrame({
+    'Feature': elite_features,
+    'SHAP Value': shap_vals,
+    'Patient Value': input_df.iloc[0].values
+})
+
+shap_df = shap_df[~shap_df['Feature'].isin(hidden_xai_features)]
                 shap_df['Abs Impact'] = shap_df['SHAP Value'].abs()
                 shap_df = shap_df.sort_values(by='Abs Impact', ascending=True)
                 colors = ['#ff4b4b' if val > 0 else '#1f77b4' for val in shap_df['SHAP Value']]
@@ -492,7 +505,11 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     if isinstance(shap_values_raw, list): shap_vals = shap_values_raw[pat_final_idx][0]
                     else: shap_vals = shap_values_raw[0, :, pat_final_idx]
                         
-                    shap_df = pd.DataFrame({'Feature': elite_features, 'SHAP Value': shap_vals, 'Patient Value': pat_input_df.iloc[0].values})
+                    shap_df = pd.DataFrame({
+    'Feature': elite_features,
+    'SHAP Value': shap_vals,
+    'Patient Value': pat_input_df.iloc[0].values
+})shap_df = shap_df[~shap_df['Feature'].isin(hidden_xai_features)]
                     shap_df['Abs Impact'] = shap_df['SHAP Value'].abs()
                     shap_df = shap_df.sort_values(by='Abs Impact', ascending=True)
                     colors = ['#ff4b4b' if val > 0 else '#1f77b4' for val in shap_df['SHAP Value']]
