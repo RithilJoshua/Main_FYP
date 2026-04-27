@@ -493,9 +493,9 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     lime_exp = lime_explainer.explain_instance(
                         pat_input_df.iloc[0].values, batch_xai_predict_proba, num_features=5, labels=(pat_final_idx,) 
                     )
-                   lime_items = lime_exp.as_list(label=pat_final_idx)
+                    lime_items = lime_exp.as_list(label=pat_final_idx)
 
-                   lime_items = [
+                    lime_items = [
                         item for item in lime_items
                         if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
