@@ -254,25 +254,32 @@ if app_mode == "👤 Single Patient XAI":
                 st.markdown("#### LIME: The Mathematical Rules")
                 lime_explainer = lime.lime_tabular.LimeTabularExplainer(
                     training_data=background_raw, 
-                    #feature_names=elite_features,
-                    feature_names=["Hidden_Age" if f == "Age" else "Hidden_Gender" if f == "Gender_Encoded" else f for f in elite_features],
+                    feature_names=elite_features, # You don't need to rename them to 'Hidden' anymore!
                     class_names=[disease_map[i] for i in range(5)],
                     mode='classification'
                 )
+                
+                # 1. Ask LIME for 7 features (so when we hide 2, we still have 5 to show)
                 lime_exp = lime_explainer.explain_instance(
-                    input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
+                    input_df.iloc[0].values, xai_predict_proba, num_features=7, labels=(final_pred_idx,) 
                 )
 
+                # 2. Find the exact column index numbers for Age and Gender_Encoded
+                hidden_idx = [i for i, col in enumerate(elite_features) if col in ['Age', 'Gender_Encoded']]
+
+                # 3. Intercept LIME's internal math dictionary and strip out the hidden features
+                if final_pred_idx in lime_exp.local_exp:
+                    lime_exp.local_exp[final_pred_idx] = [
+                        item for item in lime_exp.local_exp[final_pred_idx] 
+                        if item[0] not in hidden_idx
+]
+
+                # 4. Generate the HTML. The LIME graphic will now strictly show clinical markers.
                 raw_html = lime_exp.as_html(labels=[final_pred_idx])
                 white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
                 components.html(white_background_html, height=450, scrolling=True)
-        
-                lime_items = lime_exp.as_list(label=final_pred_idx)
 
-                lime_items = [
-                    item for item in lime_items
-                    if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
-]
+           
 
                 #lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
                 #st.dataframe(lime_df, use_container_width=True)
