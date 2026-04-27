@@ -266,7 +266,7 @@ if app_mode == "👤 Single Patient XAI":
                 raw_html = lime_exp.as_html(labels=[final_pred_idx])
                 white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
                 components.html(white_background_html, height=450, scrolling=True)
-                )
+        
                 lime_items = lime_exp.as_list(label=final_pred_idx)
 
                 lime_items = [
