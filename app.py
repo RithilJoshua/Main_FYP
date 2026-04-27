@@ -188,8 +188,8 @@ if app_mode == "👤 Single Patient XAI":
 
             final_pred_idx = inverse_disease_map[final_diagnosis]
 
-            if max_prob > 99.5:
-                max_prob = 98.2 + (np.random.rand() * 1.5) 
+           # if max_prob > 99.5:
+                #max_prob = 98.2 + (np.random.rand() * 1.5) 
 
             # CLOUD DATABASE SAVING
             if consent_given:
