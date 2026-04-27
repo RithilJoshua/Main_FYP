@@ -261,13 +261,15 @@ if app_mode == "👤 Single Patient XAI":
                 lime_exp = lime_explainer.explain_instance(
                     input_df.iloc[0].values, xai_predict_proba, num_features=5, labels=(final_pred_idx,) 
                 )
-                raw_html = lime_exp.as_html(labels=[final_pred_idx]) 
-                filtered_list = [item for item in lime_exp.as_list(label=final_pred_idx)if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
+                lime_items = lime_exp.as_list(label=final_pred_idx)
+
+                lime_items = [
+                    item for item in lime_items
+                    if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
 ]
 
-                st.write(filtered_list)
-                white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
-                components.html(white_background_html, height=450, scrolling=True)
+                lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
+                st.dataframe(lime_df, use_container_width=True)
 
             with tab2:
                 st.markdown("#### SHAP: Explnations'")
@@ -491,9 +493,15 @@ elif app_mode == "📁 Batch Processing (CSV)":
                     lime_exp = lime_explainer.explain_instance(
                         pat_input_df.iloc[0].values, batch_xai_predict_proba, num_features=5, labels=(pat_final_idx,) 
                     )
-                    raw_html = lime_exp.as_html(labels=[pat_final_idx]) 
-                    white_background_html = f"""<div style="background-color: white; padding: 20px; border-radius: 8px; color: black;">{raw_html}</div>"""
-                    components.html(white_background_html, height=450, scrolling=True)
+                   lime_items = lime_exp.as_list(label=pat_final_idx)
+
+                   lime_items = [
+                        item for item in lime_items
+                        if 'Age' not in item[0] and 'Gender_Encoded' not in item[0]
+]
+
+                  lime_df = pd.DataFrame(lime_items, columns=["Feature Rule", "Impact"])
+                  st.dataframe(lime_df, use_container_width=True)
 
                 with tab2:
                     st.markdown("#### SHAP: The Explanations")
